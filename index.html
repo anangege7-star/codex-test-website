@@ -131,6 +131,18 @@
       font-size: 14px;
     }
     .storage-status { margin: 8px 0 0; color: #526d88; font-size: 12px; line-height: 1.6; }
+    .welcome-footer {
+      margin-top: 28px;
+      padding-top: 20px;
+      border-top: 1px solid #bfdbfe;
+      color: #526d88;
+      text-align: center;
+      font-size: clamp(14px, 3.5vw, 16px);
+      line-height: 1.8;
+      overflow-wrap: anywhere;
+    }
+    .welcome-footer p { margin: 0; }
+    body[data-theme="dark"] .welcome-footer { color: #b7cbe3; border-color: #426080; }
     .theme-toggle {
       position: absolute;
       top: calc(16px + env(safe-area-inset-top));
@@ -244,6 +256,9 @@
       </div>
       <p id="storage-status" class="storage-status" role="status"></p>
     </section>
+    <footer class="welcome-footer">
+      <p>欢迎来到我的第一个 AI 网站！感谢你的访问 ❤️</p>
+    </footer>
   </main>
   <script>
     const themeToggle = document.getElementById('theme-toggle');

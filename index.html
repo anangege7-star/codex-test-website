@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>我的第一个AI网站</title>
+  <style>
+    * { box-sizing: border-box; }
+    html { color-scheme: light; -webkit-text-size-adjust: 100%; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      min-height: 100svh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #eff8ff 0%, #dbeeff 50%, #c7e4ff 100%);
+      color: #16324f;
+      font-family: "Microsoft YaHei", sans-serif;
+      padding: 0 max(12px, env(safe-area-inset-right)) 0 max(12px, env(safe-area-inset-left));
+    }
+    main {
+      width: min(640px, 100%);
+      min-width: 0;
+      padding: clamp(32px, 7vw, 64px) 24px;
+      margin: calc(80px + env(safe-area-inset-top)) 0 max(24px, env(safe-area-inset-bottom));
+      text-align: center;
+      background: rgba(255, 255, 255, 0.78);
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      border-radius: 28px;
+      box-shadow: 0 24px 70px rgba(48, 104, 160, 0.14);
+      animation: appear 0.8s ease-out both;
+    }
+    h1 { margin: 0 0 16px; font-size: clamp(28px, 8vw, 56px); line-height: 1.3; letter-spacing: 1px; overflow-wrap: anywhere; }
+    .welcome { margin: 0 0 32px; color: #526d88; font-size: clamp(16px, 4vw, 20px); line-height: 1.7; }
+    .clock-card {
+      margin: 0 0 32px;
+      padding: 24px 12px;
+      background: rgba(219, 238, 255, 0.55);
+      border: 1px solid rgba(255, 255, 255, 0.85);
+      border-radius: 20px;
+      box-shadow: 0 8px 24px rgba(48, 104, 160, 0.08);
+      backdrop-filter: blur(12px);
+    }
+    .clock-label { margin: 0 0 10px; color: #526d88; font-size: 14px; }
+    .clock-time {
+      display: block;
+      color: #1d4ed8;
+      font-size: clamp(26px, 9vw, 52px);
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.3;
+      letter-spacing: 2px;
+    }
+    .clock-date { margin: 12px 0 0; color: #526d88; font-size: clamp(14px, 3.5vw, 17px); line-height: 1.6; }
+    button {
+      min-height: 48px;
+      padding: 14px 36px;
+      border: none;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #2563eb, #1479db);
+      color: white;
+      font: inherit;
+      font-size: 18px;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(37, 99, 235, 0.24);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    button:hover { transform: translateY(-3px); box-shadow: 0 12px 26px rgba(37, 99, 235, 0.32); }
+    button:active { transform: translateY(0) scale(0.97); }
+    button:focus-visible { outline: 3px solid #16324f; outline-offset: 4px; }
+    #message { min-height: 54px; margin: 24px 0 0; color: #166534; font-size: clamp(16px, 4vw, 20px); line-height: 1.7; }
+    #message.visible { animation: appear 0.45s ease-out both; }
+    .chat-card {
+      margin-top: 24px;
+      padding: 24px;
+      text-align: left;
+      background: rgba(255, 255, 255, 0.7);
+      border: 1px solid #dbeafe;
+      border-radius: 20px;
+      box-shadow: 0 8px 24px rgba(48, 104, 160, 0.08);
+    }
+    .chat-card h2 { margin: 0 0 8px; font-size: 22px; }
+    .chat-note { margin: 0 0 20px; color: #526d88; font-size: 13px; line-height: 1.6; }
+    .chat-messages {
+      height: 280px;
+      height: clamp(200px, 38svh, 340px);
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 8px 4px;
+      scroll-behavior: smooth;
+    }
+    .bubble {
+      max-width: 88%;
+      padding: 12px 16px;
+      border-radius: 16px 16px 16px 4px;
+      background: #eaf3ff;
+      font-size: 15px;
+      line-height: 1.6;
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+      animation: appear 0.25s ease-out both;
+    }
+    .bubble.user { align-self: flex-end; background: #2563eb; color: white; border-radius: 16px 16px 4px 16px; }
+    .bubble-name { display: block; margin-bottom: 4px; font-size: 12px; opacity: 0.75; }
+    .chat-form { display: flex; gap: 10px; margin-top: 20px; }
+    .chat-input {
+      flex: 1;
+      min-width: 0;
+      min-height: 48px;
+      padding: 12px 14px;
+      border: 1px solid #bfdbfe;
+      border-radius: 14px;
+      background: white;
+      color: #16324f;
+      font: inherit;
+      font-size: 16px;
+    }
+    .chat-input:focus { outline: 2px solid #2563eb; outline-offset: 2px; }
+    .chat-form button { padding: 12px 20px; font-size: 16px; flex-shrink: 0; }
+    .chat-tools { display: flex; justify-content: flex-end; margin-top: 16px; }
+    .chat-tools button {
+      min-height: 44px;
+      padding: 8px 14px;
+      border: 1px solid #bfdbfe;
+      background: #eff6ff;
+      color: #315578;
+      box-shadow: none;
+      font-size: 14px;
+    }
+    .storage-status { margin: 8px 0 0; color: #526d88; font-size: 12px; line-height: 1.6; }
+    .theme-toggle {
+      position: absolute;
+      top: calc(16px + env(safe-area-inset-top));
+      right: max(16px, env(safe-area-inset-right));
+      max-width: calc(100% - 32px);
+      min-height: 44px;
+      padding: 10px 18px;
+      font-size: 14px;
+      z-index: 1;
+    }
+    body[data-theme="dark"] {
+      background: linear-gradient(135deg, #0f172a 0%, #172b46 50%, #1e3a5f 100%);
+      color: #e5efff;
+      color-scheme: dark;
+    }
+    body[data-theme="dark"] main {
+      background: rgba(20, 35, 56, 0.92);
+      border-color: #36516f;
+      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.3);
+    }
+    body[data-theme="dark"] .welcome,
+    body[data-theme="dark"] .clock-label,
+    body[data-theme="dark"] .clock-date,
+    body[data-theme="dark"] .chat-note,
+    body[data-theme="dark"] .storage-status { color: #b7cbe3; }
+    body[data-theme="dark"] .clock-card,
+    body[data-theme="dark"] .chat-card {
+      background: rgba(36, 57, 82, 0.75);
+      border-color: #426080;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    }
+    body[data-theme="dark"] .clock-time { color: #93c5fd; }
+    body[data-theme="dark"] button { background: linear-gradient(135deg, #1d4ed8, #0369a1); }
+    body[data-theme="dark"] button:focus-visible { outline-color: #bfdbfe; }
+    body[data-theme="dark"] #message { color: #86efac; }
+    body[data-theme="dark"] .bubble { background: #314c6b; color: #edf5ff; }
+    body[data-theme="dark"] .bubble.user { background: #1d4ed8; color: #fff; }
+    body[data-theme="dark"] .chat-input { background: #16263b; color: #edf5ff; border-color: #597a9d; }
+    body[data-theme="dark"] .chat-input::placeholder { color: #a8bfd9; }
+    body[data-theme="dark"] .chat-input:focus { outline-color: #93c5fd; }
+    body[data-theme="dark"] .chat-tools button { background: #263f5b; color: #dbeafe; border-color: #597a9d; }
+    @media (max-width: 420px) {
+      main { padding: 28px 16px; border-radius: 22px; }
+      .welcome { margin-bottom: 24px; }
+      .clock-card { padding: 20px 8px; margin-bottom: 24px; }
+      .clock-time { letter-spacing: 1px; }
+      .chat-card { padding: 16px; }
+      .chat-card h2 { font-size: 20px; }
+      .bubble { max-width: 94%; padding: 10px 12px; }
+      .chat-form { gap: 8px; }
+      .chat-form button { padding: 12px 14px; }
+    }
+    @media (max-width: 360px) {
+      main { padding: 24px 12px; }
+      .chat-card { padding: 12px; }
+      .chat-form { flex-wrap: wrap; }
+      .chat-input { flex-basis: 100%; }
+      .chat-form button { width: 100%; }
+      .chat-tools button { width: 100%; }
+    }
+    @media (min-width: 768px) {
+      main { padding: 48px 40px; }
+      .chat-card { padding: 28px; }
+    }
+    @keyframes appear {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      main, #message.visible, .bubble { animation: none; }
+      .chat-messages { scroll-behavior: auto; }
+      button { transition: none; }
+      button:hover, button:active { transform: none; }
+    }
+  </style>
+</head>
+<body>
+  <button id="theme-toggle" class="theme-toggle" type="button" aria-pressed="false">切换到深色模式</button>
+  <script>
+    // 提前恢复主题，避免等待页面其他功能初始化。
+    try {
+      if (localStorage.getItem('my-first-ai-site-theme') === 'dark') {
+        document.body.dataset.theme = 'dark';
+      }
+    } catch (error) {
+      // 存储不可用时仍可切换主题。
+    }
+  </script>
+  <main>
+    <h1>你好，世界！</h1>
+    <p class="welcome">欢迎来到我的第一个AI网站</p>
+    <section class="clock-card" aria-label="北京时间实时时钟">
+      <p class="clock-label">北京时间 · Asia/Shanghai</p>
+      <time id="clock-time" class="clock-time" aria-label="当前北京时间"></time>
+      <p id="clock-date" class="clock-date"></p>
+    </section>
+    <button id="hello-button" type="button">点击我</button>
+    <p id="message" role="status" aria-live="polite"></p>
+    <section class="chat-card" aria-labelledby="chat-title">
+      <h2 id="chat-title">我的 AI 小助手</h2>
+      <p class="chat-note">演示聊天机器人 · 根据简单关键词回复，暂时不连接真实 AI 大模型。</p>
+      <div id="chat-messages" class="chat-messages" role="log" aria-live="polite" aria-label="聊天消息" tabindex="0">
+        <div class="bubble"><span class="bubble-name">小助手</span>你好！我是演示聊天机器人。可以和我说“你好”，也可以问问时间、日期，或输入“帮助”。</div>
+      </div>
+      <form id="chat-form" class="chat-form">
+        <input id="chat-input" class="chat-input" type="text" aria-label="输入聊天消息" placeholder="输入消息…" maxlength="500" autocomplete="off" required>
+        <button type="submit">发送</button>
+      </form>
+      <div class="chat-tools">
+        <button id="clear-chat" type="button">清空聊天记录</button>
+      </div>
+      <p id="storage-status" class="storage-status" role="status"></p>
+    </section>
+  </main>
+  <script>
+    const themeToggle = document.getElementById('theme-toggle');
+    function updateThemeButton() {
+      const isDark = document.body.dataset.theme === 'dark';
+      themeToggle.textContent = isDark ? '切换到浅色模式' : '切换到深色模式';
+      themeToggle.setAttribute('aria-pressed', String(isDark));
+    }
+    updateThemeButton();
+    themeToggle.addEventListener('click', function () {
+      const theme = document.body.dataset.theme === 'dark' ? 'light' : 'dark';
+      document.body.dataset.theme = theme;
+      updateThemeButton();
+      try {
+        localStorage.setItem('my-first-ai-site-theme', theme);
+        themeToggle.title = '';
+      } catch (error) {
+        themeToggle.title = '浏览器暂时无法保存主题选择，本次切换仍然有效。';
+      }
+    });
+    const timeFormatter = new Intl.DateTimeFormat('zh-CN', {
+      timeZone: 'Asia/Shanghai',
+      hour: '2-digit', minute: '2-digit', second: '2-digit',
+      hourCycle: 'h23'
+    });
+    const dateFormatter = new Intl.DateTimeFormat('zh-CN', {
+      timeZone: 'Asia/Shanghai',
+      year: 'numeric', month: 'long', day: 'numeric', weekday: 'long'
+    });
+    const clockTime = document.getElementById('clock-time');
+    const clockDate = document.getElementById('clock-date');
+    function updateClock() {
+      const now = new Date();
+      clockTime.textContent = timeFormatter.format(now);
+      clockTime.dateTime = now.toISOString();
+      clockDate.textContent = dateFormatter.format(now);
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+    document.addEventListener('visibilitychange', function () {
+      if (!document.hidden) updateClock();
+    });
+    document.getElementById('hello-button').addEventListener('click', function () {
+      document.getElementById('message').textContent = '恭喜你，网页运行成功！';
+      document.getElementById('message').classList.add('visible');
+    });
+    const chatMessages = document.getElementById('chat-messages');
+    const chatInput = document.getElementById('chat-input');
+    const storageKey = 'my-first-ai-site-chat-v1';
+    const storageStatus = document.getElementById('storage-status');
+    const welcomeMessage = '你好！我是演示聊天机器人。可以和我说“你好”，也可以问问时间、日期，或输入“帮助”。';
+    let chatHistory = [];
+    function saveChatHistory() {
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(chatHistory));
+        storageStatus.textContent = '';
+      } catch (error) {
+        storageStatus.textContent = '浏览器暂时无法保存聊天记录，当前聊天仍可正常使用。';
+      }
+    }
+    function renderChatMessage(content, isUser) {
+      const bubble = document.createElement('div');
+      bubble.className = isUser ? 'bubble user' : 'bubble';
+      const name = document.createElement('span');
+      name.className = 'bubble-name';
+      name.textContent = isUser ? '你' : '小助手';
+      bubble.appendChild(name);
+      bubble.appendChild(document.createTextNode(content));
+      chatMessages.appendChild(bubble);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    function addChatMessage(content, isUser) {
+      renderChatMessage(content, isUser);
+      chatHistory.push({ content: content, isUser: isUser });
+      saveChatHistory();
+    }
+    function showWelcome() {
+      renderChatMessage(welcomeMessage, false);
+    }
+    function restoreChatHistory() {
+      chatMessages.replaceChildren();
+      try {
+        const stored = localStorage.getItem(storageKey);
+        if (stored !== null) {
+          const parsed = JSON.parse(stored);
+          if (!Array.isArray(parsed) || !parsed.every(function (item) {
+            return item && typeof item.content === 'string' && typeof item.isUser === 'boolean';
+          })) throw new Error('Invalid chat history');
+          chatHistory = parsed;
+        }
+      } catch (error) {
+        storageStatus.textContent = '暂时无法读取历史记录，您可以继续聊天。';
+      }
+      if (chatHistory.length) {
+        chatHistory.forEach(function (item) { renderChatMessage(item.content, item.isUser); });
+      } else {
+        showWelcome();
+      }
+    }
+    restoreChatHistory();
+    document.getElementById('clear-chat').addEventListener('click', function () {
+      if (!window.confirm('确定要清空全部聊天记录吗？清空后无法恢复。')) return;
+      try {
+        localStorage.removeItem(storageKey);
+      } catch (error) {
+        storageStatus.textContent = '浏览器暂时无法删除保存的记录，请稍后重试。';
+        return;
+      }
+      chatHistory = [];
+      chatMessages.replaceChildren();
+      showWelcome();
+      storageStatus.textContent = '聊天记录已清空。';
+    });
+    function getReply(message) {
+      const text = message.toLowerCase();
+      if (/你好|您好|hello|hi\b/.test(text)) return '你好！很高兴认识你！';
+      if (/帮助|你会什么|功能/.test(text)) return '可以试试：你好、时间、日期、你是谁、谢谢、再见。我目前使用关键词规则进行演示回复。';
+      if (/你是谁|名字/.test(text)) return '我是你的 AI 小助手，一个演示聊天机器人，暂时没有连接真实 AI 大模型。';
+      if (/日期|星期|几号/.test(text)) return '北京时间的日期是：' + dateFormatter.format(new Date()) + '。';
+      if (/时间|几点/.test(text)) return '现在的北京时间是：' + timeFormatter.format(new Date()) + '。';
+      if (/谢谢|感谢/.test(text)) return '不客气！很高兴能帮到你！';
+      if (/再见|拜拜/.test(text)) return '再见！欢迎随时回来聊天！';
+      return '我目前只能根据简单关键词回复。试着输入“你好”“时间”或“帮助”吧！';
+    }
+    document.getElementById('chat-form').addEventListener('submit', function (event) {
+      event.preventDefault();
+      if (event.isComposing || chatInput.matches(':disabled')) return;
+      const message = chatInput.value.trim();
+      if (!message) return;
+      addChatMessage(message, true);
+      chatInput.value = '';
+      addChatMessage(getReply(message), false);
+      chatInput.focus();
+    });
+    chatInput.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter' && event.isComposing) event.preventDefault();
+    });
+  </script>
+</body>
+</html>
